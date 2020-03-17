@@ -13,9 +13,9 @@ The matlab toolbox needed is MPT
 ## Description
 
 ### python folder
-Run the main.py to generate the data contained in the 'storedData' folder
+Run the main.py to generate the data contained in the 'storedData' folder.
 
-In particular 
+You can modify the following paramters:
 1) Line 20: choose if you want to run the first or second example from the paper.
 2) Line 21: choose if you want to use the low level high freqeuncy feedback.
 3) Line 22: choose if you want to use linear or nonlinaer MPC for high-level control
