@@ -46,9 +46,9 @@ class CBF_CLF(object):
 				dotphi,
 				( ( 9.3*(uCBF+uMPC) - 58.8*v )*np.cos(phi) + 38.6*(uCBF+uMPC) - 234.5*v - np.sin(phi) * (208.3 + dotphi**2*np.cos(phi)) ) / (np.cos(phi)**2 - 24.7),
 				vn,
-				(11.5+68.4)/(-23.7)*v + 9.8/(-23.7)*phin + 12.8/23.7*uMPC,
+				(11.5+68.4)/(-23.7)*vn + 9.8/(-23.7)*phin + 12.8/23.7*uMPC,
 				dotphin,
-				(-58.8-234.5)/(-23.7)*v - 208.3/(-23.7)*phin - 47.9/23.7*uMPC]
+				(-58.8-234.5)/(-23.7)*vn - 208.3/(-23.7)*phin - 47.9/23.7*uMPC]
 
 		# Barrier
 		h = 1 - (phi - phin)**2/phimax**2 - (v - vn)**2/vmax**2 - (x - xn)**2/xmax**2 - (dotphi - dotphin)**2/dotphimax**2

@@ -2,6 +2,7 @@ import numpy as np
 import pdb 
 import scipy
 from cvxpy import *
+import time
 
 class FTOCP(object):
 	""" Finite Time Optimal Control Problem (FTOCP)
@@ -37,6 +38,7 @@ class FTOCP(object):
 		# Initialize Predicted Trajectory
 		self.xPred = []
 		self.uPred = []
+		self.solverTime = []
 
 	def solve(self, x0, verbose = False):
 		"""This methos solve a FTOCP given:
@@ -77,7 +79,10 @@ class FTOCP(object):
 		# 	problem.solve(verbose=verbose, solver=ECOS) # I find that ECOS is better please use it when solving QPs
 		# else:
 		# 	problem.solve(verbose=verbose)
+		start = time.time()
 		problem.solve(verbose=verbose, solver=ECOS) # I find that ECOS is better please use it when solving QPs
+		end = time.time()
+		self.solverTime = end - start 
 
 		# Store the open-loop predicted trajectory
 

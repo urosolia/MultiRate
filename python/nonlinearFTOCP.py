@@ -4,6 +4,7 @@ import pdb
 import itertools
 import numpy as np
 from cvxpy import *
+import time
 
 ##### MY CODE ######
 class nonlinearFTOCP(object):
@@ -31,6 +32,7 @@ class nonlinearFTOCP(object):
 		self.fixInput = fixInput
 
 		self.buildNonlinearProgram()
+		self.solverTime = []
 
 	def solve(self, x0, verbose=False):
 			# Set box constraints on states (here we constraint the last i steps of the horizon to be xf)
@@ -52,7 +54,10 @@ class nonlinearFTOCP(object):
 
 
 			# Solve nonlinear programm
+			start = time.time()
 			sol = self.solver(lbx=self.lbx, ubx=self.ubx, lbg=self.lbg_dyanmics, ubg=self.ubg_dyanmics)
+			end = time.time()
+			self.solverTime = end - start
 
 			# Check if the solution is feasible
 			if (self.solver.stats()['success']) and (np.max(x0 - self.bx) < 0):

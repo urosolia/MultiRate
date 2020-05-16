@@ -11,33 +11,60 @@ from tempfile import TemporaryFile
 import copy
 import datetime
 import os
+import time
+
 
 # Check if a storedData folder exist.	
 if not os.path.exists('storedData'):
 	os.makedirs('storedData')
 
 # Initialization Parameters
-Example     = 1 # Pich between example 1 and 2 in the paper
-useLowLevel = 0 # 1 low level active and 0 low level not active
-linearMPC   = 0 # 1 linear highlevel MPC and 0 nonlinear high level MPC
+Example      = 2 # Pich between example 1 and 2 in the paper
+useLowLevel  = 0 # 1 low level active and 0 low level not active
+linearMPC    = 1 # 1 linear highlevel MPC and 0 nonlinear high level MPC
+highFreqComp = 1000 # opt are 0 = no comparison, 20 = compare with 20Hz, 100 = compare with 100Hz and 1000 = compare with 1kHz
 
 # selet folder for reading data and set nonlinear MPC parameters
 if Example == 1:
 	folderToLoad = 'parameter_dt_mpc_0.5'
 	
-	# dt_nonlinear = 0.01 # Discretization time NMPC model ---> 1/0.01 model update rate
-	# N_nonlinear = 500   # Horizon length 
-	# fixInput = 49       # Number of consecutive inputs kept constant --> 1/0.5 input update rate 
+	dt_nonlinear = 0.01 # Discretization time NMPC model ---> 1/0.01 model update rate
+	N_nonlinear = 500   # Horizon length 
+	fixInput = 49       # Number of consecutive inputs kept constant --> 1/0.5 input update rate 
 
-	dt_nonlinear = 0.05 # Discretization time NMPC model ---> 1/0.05 model update rate
-	N_nonlinear = 100   # Horizon length 
-	fixInput = 9        # Number of consecutive inputs kept constant --> 1/0.5 input update rate 
+	# dt_nonlinear = 0.05 # Discretization time NMPC model ---> 1/0.05 model update rate
+	# N_nonlinear = 100   # Horizon length 
+	# fixInput = 9        # Number of consecutive inputs kept constant --> 1/0.5 input update rate 
 
 else:
-	folderToLoad = 'parameter_dt_mpc_0.1'
-	dt_nonlinear = 0.1
-	N_nonlinear = None
-	fixInput = 0 # No need to fix inputs as the discretization time of the nonlinear mpc is the same as the linear one
+	if (useLowLevel == 0 or linearMPC == 0) and (highFreqComp > 0):
+		if highFreqComp == 20:
+			folderToLoad = 'parameter_dt_mpc_0.05'
+			dt_nonlinear = 0.05 # Discretization time NMPC model ---> 1/0.05 model update rate
+			N_nonlinear  = 20   # Horizon length 
+			fixInput     = 0    # Number of consecutive inputs kept constant --> 1/0.5 input update rate 
+		
+		elif highFreqComp == 100:
+			folderToLoad = 'parameter_dt_mpc_0.01'
+			dt_nonlinear = 0.01# Discretization time NMPC model ---> 1/0.05 model update rate
+			N_nonlinear  = 100   # Horizon length 
+			fixInput     = 0    # Number of consecutive inputs kept constant --> 1/0.5 input update rate 
+		
+		
+		elif highFreqComp == 1000:
+			folderToLoad = 'parameter_dt_mpc_0.001'
+			dt_nonlinear = 0.001 # Discretization time NMPC model ---> 1/0.05 model update rate
+			N_nonlinear  = 1000   # Horizon length 
+			fixInput     = 0    # Number of consecutive inputs kept constant --> 1/0.5 input update rate 
+
+		dt_nonlinear = 0.05 # Discretization time NMPC model ---> 1/0.05 model update rate
+		N_nonlinear  = 20   # Horizon length 
+		fixInput     = 0    # Number of consecutive inputs kept constant --> 1/0.5 input update rate 
+	else:
+		folderToLoad = 'parameter_dt_mpc_0.1'
+		dt_nonlinear = 0.1
+		N_nonlinear = None
+		fixInput = 0 # No need to fix inputs as the discretization time of the nonlinear mpc is the same as the linear one
 
 
 if linearMPC == 0: # If using nonlinear model deactivate low level controller
@@ -94,11 +121,10 @@ dotphimax = lines[3]
 lines  = np.loadtxt(folderToLoad+"/parameters.txt", unpack=False)
 T      = lines[0]
 dt     = lines[1]
-# if linearMPC == 1:
-# 	dt_mpc = lines[2]
-# else:
-# 	dt_mpc = dt_nonlinear
-dt_mpc = lines[2]
+if (Example == 2) and (dt_nonlinear != None) and (linearMPC == 0):
+	dt_mpc = dt_nonlinear
+else:
+	dt_mpc = lines[2]
 
 ############################# Initialize Objects #####################################
 steps = 10
@@ -118,16 +144,18 @@ else:
 cbf_clf = CBF_CLF(vmax, dotphimax, xmax, phimax)
 
 ############################# Run main loop #####################################
-time = [0]
+timeSim = [0]
 mpcCounter = int(dt_mpc/dt)
 
+mpcSolverTime = []
 
-while (time[-1] <= T ):
+while (timeSim[-1] <= T ):
 
 	# Solve FTOCP
 	if mpcCounter == int(dt_mpc/dt):
 		mpcCounter = 1
 		ftocp.solve(xcl[-1], verbose = False) 
+		
 		# Read optimal input
 		ut_Mpc = ftocp.mpcInput
 		# Reset High Level Planning Model Internal State
@@ -137,6 +165,8 @@ while (time[-1] <= T ):
 	else:
 		mpcCounter += 1
 
+	mpcSolverTime.append(ftocp.solverTime)
+	print("Solver Time: ", ftocp.solverTime)
 	# Solve CLF-CBF QP
 	if useLowLevel == 1:
 		cbf_clf.solve(xcl[-1], xncl[-1], ut_Mpc, verbose = False)
@@ -162,12 +192,12 @@ while (time[-1] <= T ):
 	# Apply input to the system
 	xcl.append(simulator.sim(xcl[-1], ucl[-1]))
 
-	time.append(time[-1]+dt)
+	timeSim.append(timeSim[-1]+dt)
 
 	if xcl[-1][2] > 1.3:
 		break
 	# Increasi time counter
-	print("Time: ", time[-1], "Closed-Loop: ", xcl[-1], "Input MPC: ",ut_Mpc, "Input CBF: ", u_CBF)
+	print("Time: ", timeSim[-1], "Closed-Loop: ", xcl[-1], "Input MPC: ",ut_Mpc, "Input CBF: ", u_CBF)
 
 
 
@@ -183,7 +213,7 @@ np.savetxt('storedData/xncl_dt_mpc_'+str(dt_mpc)+'_lowLevelUsed_'+str(useLowLeve
 np.savetxt('storedData/ucl_dt_mpc_'+str(dt_mpc)+'_lowLevelUsed_'+str(useLowLevel)+'.txt', np.round(np.array(ucl), decimals=5).T, fmt='%f' )
 np.savetxt('storedData/ucl_mpc_dt_mpc_'+str(dt_mpc)+'_lowLevelUsed_'+str(useLowLevel)+'.txt', np.round(np.array(ucl_mpc), decimals=5).T, fmt='%f' )
 np.savetxt('storedData/ucl_cbf_dt_mpc_'+str(dt_mpc)+'_lowLevelUsed_'+str(useLowLevel)+'.txt', np.round(np.array(ucl_cbf), decimals=5).T, fmt='%f' )
-np.savetxt('storedData/time_'+str(dt_mpc)+'_lowLevelUsed_'+str(useLowLevel)+'.txt', np.round(np.array(time), decimals=5).T, fmt='%f' )
+np.savetxt('storedData/time_'+str(dt_mpc)+'_lowLevelUsed_'+str(useLowLevel)+'.txt', np.round(np.array(timeSim), decimals=5).T, fmt='%f' )
 np.save(outfile, xcl)
 
 ############################# Plot Results #####################################
@@ -193,30 +223,30 @@ xncl = np.array(xncl).T
 ucl = np.array(ucl).T
 ucl_mpc = np.array(ucl_mpc).T
 ucl_cbf = np.array(ucl_cbf).T
-time = np.array(time)
+timeSim = np.array(timeSim)
 
 plt.figure()
 plt.subplot(4, 1, 1)	
-plt.plot(time, xcl[0,:], '-o', color='C0')#, label="LMPC closed-loop for P = "+str(P))
-plt.plot(time, xncl[0,:], '-s', color='C2')#, label="LMPC closed-loop for P = "+str(P))
+plt.plot(timeSim, xcl[0,:], '-o', color='C0')#, label="LMPC closed-loop for P = "+str(P))
+plt.plot(timeSim, xncl[0,:], '-s', color='C2')#, label="LMPC closed-loop for P = "+str(P))
 plt.ylabel('$p$', fontsize=20)
 plt.legend()
 
 plt.subplot(4, 1, 2)
-plt.plot(time, xcl[1,:], '-o', color='C0')#, label="LMPC closed-loop for P = "+str(P))
-plt.plot(time, xncl[1,:], '-s', color='C2')#, label="LMPC closed-loop for P = "+str(P))
+plt.plot(timeSim, xcl[1,:], '-o', color='C0')#, label="LMPC closed-loop for P = "+str(P))
+plt.plot(timeSim, xncl[1,:], '-s', color='C2')#, label="LMPC closed-loop for P = "+str(P))
 plt.ylabel('$v$', fontsize=20)
 plt.legend()
 
 plt.subplot(4, 1, 3)
-plt.plot(time, xcl[2,:], '-o', color='C0')#, label="LMPC closed-loop for P = "+str(P))
-plt.plot(time, xncl[2,:], '-s', color='C2')#, label="LMPC closed-loop for P = "+str(P))
+plt.plot(timeSim, xcl[2,:], '-o', color='C0')#, label="LMPC closed-loop for P = "+str(P))
+plt.plot(timeSim, xncl[2,:], '-s', color='C2')#, label="LMPC closed-loop for P = "+str(P))
 plt.ylabel('$\\theta$', fontsize=20)
 plt.legend()
 
 plt.subplot(4, 1, 4)
-plt.plot(time, xcl[3,:], '-o', color='C0')#, label="LMPC closed-loop for P = "+str(P))
-plt.plot(time, xncl[3,:], '-s', color='C2')#, label="LMPC closed-loop for P = "+str(P))
+plt.plot(timeSim, xcl[3,:], '-o', color='C0')#, label="LMPC closed-loop for P = "+str(P))
+plt.plot(timeSim, xncl[3,:], '-s', color='C2')#, label="LMPC closed-loop for P = "+str(P))
 plt.ylabel('$\omega$', fontsize=20)
 plt.xlabel('$\mathrm{time}$', fontsize=20)
 plt.legend()
@@ -224,10 +254,13 @@ plt.legend()
 plt.show()
 
 plt.figure()
-plt.plot(time[0:ucl.shape[0]], ucl, '-o', color='C0', label="Total input")
-plt.plot(time[0:ucl_mpc.shape[0]], ucl_mpc, '-s', color='C3', label="High level control action")
-plt.plot(time[0:ucl_cbf.shape[0]], ucl_cbf, '-s', color='C4', label="Low level control action")
+plt.plot(timeSim[0:ucl.shape[0]], ucl, '-o', color='C0', label="Total input")
+plt.plot(timeSim[0:ucl_mpc.shape[0]], ucl_mpc, '-s', color='C3', label="High level control action")
+plt.plot(timeSim[0:ucl_cbf.shape[0]], ucl_cbf, '-s', color='C4', label="Low level control action")
 plt.xlabel('$\mathrm{time}$', fontsize=20)
 plt.legend()
 
 plt.show()
+
+pdb.set_trace()
+
