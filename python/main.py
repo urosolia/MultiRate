@@ -19,10 +19,10 @@ if not os.path.exists('storedData'):
 	os.makedirs('storedData')
 
 # Initialization Parameters
-Example      = 2 # Pich between example 1 and 2 in the paper
+Example      = 1 # Pich between example 1 and 2 in the paper
 useLowLevel  = 0 # 1 low level active and 0 low level not active
-linearMPC    = 1 # 1 linear highlevel MPC and 0 nonlinear high level MPC
-highFreqComp = 1000 # opt are 0 = no comparison, 20 = compare with 20Hz, 100 = compare with 100Hz and 1000 = compare with 1kHz
+linearMPC    = 0 # 1 linear highlevel MPC and 0 nonlinear high level MPC
+highFreqComp = 0 # opt are 0 = no comparison, 20 = compare with 20Hz, 100 = compare with 100Hz and 1000 = compare with 1kHz
 
 # selet folder for reading data and set nonlinear MPC parameters
 if Example == 1:
@@ -32,9 +32,9 @@ if Example == 1:
 	N_nonlinear = 500   # Horizon length 
 	fixInput = 49       # Number of consecutive inputs kept constant --> 1/0.5 input update rate 
 
-	# dt_nonlinear = 0.05 # Discretization time NMPC model ---> 1/0.05 model update rate
-	# N_nonlinear = 100   # Horizon length 
-	# fixInput = 9        # Number of consecutive inputs kept constant --> 1/0.5 input update rate 
+	dt_nonlinear = 0.05 # Discretization time NMPC model ---> 1/0.05 model update rate
+	N_nonlinear = 100   # Horizon length 
+	fixInput = 9        # Number of consecutive inputs kept constant --> 1/0.5 input update rate 
 
 else:
 	if (useLowLevel == 0 or linearMPC == 0) and (highFreqComp > 0):
@@ -261,6 +261,3 @@ plt.xlabel('$\mathrm{time}$', fontsize=20)
 plt.legend()
 
 plt.show()
-
-pdb.set_trace()
-

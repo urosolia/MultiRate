@@ -21,12 +21,14 @@ if Example == 1:
 	dt_mpc = 0.5
 	dt_nonlinear = [0.01, 0.05]
 	plotNonlinearMPC = 1
+	plotMultiFreq = 0
 
 elif Example == 2:
 	dt_mpc = 0.1
 	dt_nonlinear = [dt_mpc]
 	plotNonlinearMPC = 1
 	fixInput = 0
+	plotMultiFreq = 1
 
 
 # Load data
@@ -63,6 +65,42 @@ if plotNonlinearMPC == 1:
 		ucl_cbf_nonLinear.append(np.loadtxt('storedData/ucl_cbf_dt_mpc_'+str(dt_nonlinear[i])+'_lowLevelUsed_'+str(useLowLevel)+'.txt'))
 		time_nonLinear.append(np.loadtxt('storedData/time_'+str(dt_nonlinear[i])+'_lowLevelUsed_'+str(useLowLevel)+'.txt'))
 
+if plotMultiFreq == 1:
+	useLowLevel = 0
+	dt_comparison = 0.05
+	xcl_withoutBarrier_05     = np.loadtxt('storedData/xcl_dt_mpc_'+str(dt_comparison)+'_lowLevelUsed_'+str(useLowLevel)+'.txt')
+	xncl_withoutBarrier_05    = np.loadtxt('storedData/xncl_dt_mpc_'+str(dt_comparison)+'_lowLevelUsed_'+str(useLowLevel)+'.txt')
+	ucl_withoutBarrier_05     = np.loadtxt('storedData/ucl_dt_mpc_'+str(dt_comparison)+'_lowLevelUsed_'+str(useLowLevel)+'.txt')
+	ucl_mpc_withoutBarrier_05 = np.loadtxt('storedData/ucl_mpc_dt_mpc_'+str(dt_comparison)+'_lowLevelUsed_'+str(useLowLevel)+'.txt')
+	ucl_cbf_withoutBarrier_05 = np.loadtxt('storedData/ucl_cbf_dt_mpc_'+str(dt_comparison)+'_lowLevelUsed_'+str(useLowLevel)+'.txt')
+	time_withoutBarrier_05    = np.loadtxt('storedData/time_'+str(dt_comparison)+'_lowLevelUsed_'+str(useLowLevel)+'.txt')
+
+	dt_comparison = 0.01
+	xcl_withoutBarrier_01     = np.loadtxt('storedData/xcl_dt_mpc_'+str(dt_comparison)+'_lowLevelUsed_'+str(useLowLevel)+'.txt')
+	xncl_withoutBarrier_01    = np.loadtxt('storedData/xncl_dt_mpc_'+str(dt_comparison)+'_lowLevelUsed_'+str(useLowLevel)+'.txt')
+	ucl_withoutBarrier_01     = np.loadtxt('storedData/ucl_dt_mpc_'+str(dt_comparison)+'_lowLevelUsed_'+str(useLowLevel)+'.txt')
+	ucl_mpc_withoutBarrier_01 = np.loadtxt('storedData/ucl_mpc_dt_mpc_'+str(dt_comparison)+'_lowLevelUsed_'+str(useLowLevel)+'.txt')
+	ucl_cbf_withoutBarrier_01 = np.loadtxt('storedData/ucl_cbf_dt_mpc_'+str(dt_comparison)+'_lowLevelUsed_'+str(useLowLevel)+'.txt')
+	time_withoutBarrier_01    = np.loadtxt('storedData/time_'+str(dt_comparison)+'_lowLevelUsed_'+str(useLowLevel)+'.txt')
+
+	useLowLevel = 2
+	dt_comparison = 0.05
+	xcl_nonLinear_05  = np.loadtxt('storedData/xcl_dt_mpc_'+str(dt_comparison)+'_lowLevelUsed_'+str(useLowLevel)+'.txt')
+	xncl_nonLinear_05 = np.loadtxt('storedData/xncl_dt_mpc_'+str(dt_comparison)+'_lowLevelUsed_'+str(useLowLevel)+'.txt')
+	ucl_nonLinear_05  = np.loadtxt('storedData/ucl_dt_mpc_'+str(dt_comparison)+'_lowLevelUsed_'+str(useLowLevel)+'.txt')
+	ucl_nonLinear_05  = np.loadtxt('storedData/ucl_mpc_dt_mpc_'+str(dt_comparison)+'_lowLevelUsed_'+str(useLowLevel)+'.txt')
+	ucl_nonLinear_05  = np.loadtxt('storedData/ucl_cbf_dt_mpc_'+str(dt_comparison)+'_lowLevelUsed_'+str(useLowLevel)+'.txt')
+	time_nonLinear_05 = np.loadtxt('storedData/time_'+str(dt_comparison)+'_lowLevelUsed_'+str(useLowLevel)+'.txt')
+
+	dt_comparison = 0.01
+	xcl_nonLinear_01  = np.loadtxt('storedData/xcl_dt_mpc_'+str(dt_comparison)+'_lowLevelUsed_'+str(useLowLevel)+'.txt')
+	xncl_nonLinear_01 = np.loadtxt('storedData/xncl_dt_mpc_'+str(dt_comparison)+'_lowLevelUsed_'+str(useLowLevel)+'.txt')
+	ucl_nonLinear_01  = np.loadtxt('storedData/ucl_dt_mpc_'+str(dt_comparison)+'_lowLevelUsed_'+str(useLowLevel)+'.txt')
+	ucl_nonLinear_01  = np.loadtxt('storedData/ucl_mpc_dt_mpc_'+str(dt_comparison)+'_lowLevelUsed_'+str(useLowLevel)+'.txt')
+	ucl_nonLinear_01  = np.loadtxt('storedData/ucl_cbf_dt_mpc_'+str(dt_comparison)+'_lowLevelUsed_'+str(useLowLevel)+'.txt')
+	time_nonLinear_01 = np.loadtxt('storedData/time_'+str(dt_comparison)+'_lowLevelUsed_'+str(useLowLevel)+'.txt')
+
+
 colors = ['C1', 'C2', 'C4']
 
 
@@ -79,8 +117,8 @@ if plotNonlinearMPC == 1:
 	for i in range(0,len(dt_nonlinear)):
 		plt.plot(time_nonLinear[i], xcl_nonLinear[i][0,:], '--', color = colors[i], label="Nonlinaer MPC discretized at "+str(int(1/dt_nonlinear[i]))+"Hz" )
 
-plt.ylabel('$p\mathrm{[m]}$', fontsize=20)
-plt.legend(loc='upper right',fontsize=12)
+plt.ylabel('$p_x\mathrm{[m]}$', fontsize=20)
+plt.legend(loc='upper right',fontsize=14)
 plt.xlim(time_withBarrier[0],time_withBarrier[-1])
 plt.gca().yaxis.set_major_formatter(StrMethodFormatter('{x:,.1f}')) # 2 decimal places
 plt.gca().xaxis.set_major_formatter(StrMethodFormatter('{x:,.1f}')) # 2 decimal places
@@ -93,7 +131,7 @@ if plotNonlinearMPC == 1:
 	for i in range(0,len(dt_nonlinear)):
 		plt.plot(time_nonLinear[i], xcl_nonLinear[i][1,:], '--', color = colors[i])#, label="LMPC closed-loop for P = "+str(P))
 
-plt.ylabel('$v\mathrm{[m/s]}$', fontsize=20)
+plt.ylabel('$v_x\mathrm{[m/s]}$', fontsize=20)
 plt.xlim(time_withBarrier[0],time_withBarrier[-1])
 plt.gca().yaxis.set_major_formatter(StrMethodFormatter('{x:,.1f}')) # 2 decimal places
 plt.gca().xaxis.set_major_formatter(StrMethodFormatter('{x:,.1f}')) # 2 decimal places
@@ -130,24 +168,36 @@ rcParams['figure.figsize'] = 8, 7
 matplotlib.rc('xtick', labelsize=14) 
 matplotlib.rc('ytick', labelsize=14) 
 
-plt.figure()
-plt.plot(time_withBarrier, xcl_withBarrier[2,:], '-', color='C0', label="Proposed strategy",linewidth=2)
-plt.plot(time_withoutBarrier, xcl_withoutBarrier[2,:], '-', color='C3', label="Linear MPC",linewidth=2)
-if plotNonlinearMPC == 1:
-	for i in range(0,len(dt_nonlinear)):
-		plt.plot(time_nonLinear[i], xcl_nonLinear[i][2,:], '-', color='k', label="Nonlinear MPC",linewidth=2)
 
 if Example == 2:
-	plt.plot([time_withBarrier[0],time_withBarrier[-1]], [0.78, 0.78], '--', color='k', label="Constraint",linewidth=2)
-plt.ylim(-0.7,1.5)
-plt.yticks([-0.5,0.0,0.78,1.5])
+	plt.figure()
+	plt.plot([time_withBarrier[0],time_withBarrier[-1]], [0.78, 0.78], '-', color='C2', label="Constraint",linewidth=2)
+	plt.plot(time_withBarrier, xcl_withBarrier[2,:], '-', color='C0', label="Proposed strategy [10Hz]",linewidth=2)
 
-plt.ylabel('$\\theta \mathrm{[rad]}$', fontsize=24)
-plt.xlabel('$\mathrm{Time~[s]}$', fontsize=24)
-plt.legend(fontsize=18)
-plt.xlim(time_withBarrier[0],time_withBarrier[-1])
-plt.gca().yaxis.set_major_formatter(StrMethodFormatter('{x:,.1f}')) # 2 decimal places
-plt.gca().xaxis.set_major_formatter(StrMethodFormatter('{x:,.1f}')) # 2 decimal places
+	if plotMultiFreq == 1:
+		plt.plot(time_withoutBarrier, xcl_withoutBarrier[2,:], '-', color='C3', label="Linear MPC [10Hz]",linewidth=2)
+		plt.plot(time_withoutBarrier_05, xcl_withoutBarrier_05[2,:], '--', color='C3', label="Linear MPC [20Hz]",linewidth=2)
+		plt.plot(time_withoutBarrier_01, xcl_withoutBarrier_01[2,:], '-.', color='C3', label="Linear MPC [100Hz]",linewidth=2)
+		if plotNonlinearMPC == 1:
+			for i in range(0,len(dt_nonlinear)):
+				plt.plot(time_nonLinear[i], xcl_nonLinear[i][2,:], '-', color='k', label="Nonlinear MPC [10Hz]",linewidth=2)
+		plt.plot(time_nonLinear_05, xcl_nonLinear_05[2,:], '--', color='k', label="Nonlinear MPC [20Hz]",linewidth=2)
+		plt.plot(time_nonLinear_01, xcl_nonLinear_01[2,:], '-.', color='k', label="Nonlinear MPC [100Hz]",linewidth=2)
+	else:
+		plt.plot(time_withoutBarrier, xcl_withoutBarrier[2,:], '-', color='C3', label="Linear MPC [10Hz]",linewidth=2)
+		if plotNonlinearMPC == 1:
+			for i in range(0,len(dt_nonlinear)):
+				plt.plot(time_nonLinear[i], xcl_nonLinear[i][2,:], '-', color='k', label="Nonlinear MPC",linewidth=2)
+
+	plt.ylim(-0.7,1.5)
+	plt.yticks([-0.5,0.0,0.78,1.5])
+
+	plt.ylabel('$\\theta \mathrm{[rad]}$', fontsize=24)
+	plt.xlabel('$\mathrm{Time~[s]}$', fontsize=24)
+	plt.legend(fontsize=18)
+	plt.xlim(time_withBarrier[0],time_withBarrier[-1])
+	plt.gca().yaxis.set_major_formatter(StrMethodFormatter('{x:,.1f}')) # 2 decimal places
+	plt.gca().xaxis.set_major_formatter(StrMethodFormatter('{x:,.1f}')) # 2 decimal places
 
 
 plt.figure()
