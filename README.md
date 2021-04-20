@@ -8,7 +8,7 @@ The python packeges needed for running the code can be installed using pip
 pip install cvxopt
 ```
 
-The matlab toolbox needed is MPT
+To run the Matlab code is required the MPT toolbox [link](https://www.mpt3.org/Main/Installation)
 
 ## Description
 
